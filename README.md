@@ -8,7 +8,7 @@ This example requires a nightly version of Zig. Make sure that port 9000 is avai
 
 ```
 git clone --recurse-submodules https://github.com/lithdew/hello
-cd hello && zig run http.zig
+cd hello && zig run hello.zig
 ```
 
 ## Benchmarks
