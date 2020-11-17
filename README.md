@@ -1,6 +1,6 @@
 # hello
 
-Multi-threaded cross-platform HTTP/1.1 web server example in [Zig](https://ziglang.org) using [lithdew/pike](https://github.com/lithdew/pike) and [kprotty/zap](htps://github.com/kprotty/zap).
+Multi-threaded cross-platform HTTP/1.1 web server example in [Zig](https://ziglang.org) using [lithdew/pike](https://github.com/lithdew/pike) and [kprotty/zap](https://github.com/kprotty/zap).
 
 ## Setup
 
