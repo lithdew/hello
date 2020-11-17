@@ -2,6 +2,10 @@
 
 Multi-threaded cross-platform HTTP/1.1 web server example in [Zig](https://ziglang.org) using [lithdew/pike](https://github.com/lithdew/pike) and [kprotty/zap](https://github.com/kprotty/zap).
 
+Warning: This example is barebones and _highly experimental_. Linux and Mac has been extensively tested, with Windows only being barely supported.
+
+[pike](https://github.com/lithdew/pike) does not yet support cancellation of pending I/O operations on Windows, which causes this example to fail spontaneously should one initiate a graceful shutdown on Windows.
+
 ## Setup
 
 This example requires a nightly version of Zig. Make sure that port 9000 is available.
