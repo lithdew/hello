@@ -7,7 +7,7 @@ Multi-threaded cross-platform HTTP/1.1 web server example in [Zig](https://zigla
 This example requires a nightly version of Zig. Make sure that port 9000 is available.
 
 ```
-git clone --recurse-modules https://github.com/lithdew/hello
+git clone --recurse-submodules https://github.com/lithdew/hello
 cd hello && zig run http.zig
 ```
 
