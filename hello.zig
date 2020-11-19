@@ -18,37 +18,55 @@ inline fn dispatch(batchable: anytype, args: anytype) void {
 }
 
 pub fn main() !void {
-    try pike.init();
-    defer pike.deinit();
-
-    var signal = try pike.Signal.init(.{ .interrupt = true });
-
-    try try zap.runtime.run(.{}, asyncMain, .{&signal});
+    try try zap.runtime.run(.{}, asyncMain, .{});
 }
 
-pub fn asyncMain(signal: *pike.Signal) !void {
-    defer signal.deinit();
+pub fn asyncMain() !void {
+    defer log.debug("Successfully shut down.", .{});
 
-    var event = try pike.Event.init();
-    defer event.deinit();
+    try pike.init();
+    defer pike.deinit();
 
     const notifier = try pike.Notifier.init();
     defer notifier.deinit();
 
-    try signal.registerTo(&notifier);
-    try event.registerTo(&notifier);
-
     var stopped = false;
 
-    var frame = async run(&notifier, signal, &event, &stopped);
+    var frame = async run(&notifier, &stopped);
 
     while (!stopped) {
         try notifier.poll(1_000_000);
     }
 
     try nosuspend await frame;
+}
 
-    defer log.debug("Successfully shut down.", .{});
+pub fn run(notifier: *const pike.Notifier, stopped: *bool) !void {
+    // Setup signal handler.
+    
+    var signal = try pike.Signal.init(.{ .interrupt = true });
+    defer signal.deinit();
+
+    var event = try pike.Event.init();
+    defer event.deinit();
+
+    try event.registerTo(notifier);
+
+    defer {
+        stopped.* = true;
+        event.post() catch unreachable;
+    }
+
+    // Setup TCP server.
+
+    var server = try Server.init();
+    defer server.deinit();
+
+    // Start the server, and await for an interrupt signal to gracefully shutdown
+    // the server.
+
+    try server.start(notifier, try net.Address.parseIp("0.0.0.0", 9000));
+    try signal.wait();
 }
 
 pub const ClientQueue = atomic.Queue(*Client);
@@ -88,7 +106,7 @@ pub const Client = struct {
                     return error.RequestTooLarge;
                 }
 
-                if (mem.indexOf(u8, buf[buf_len..][0..num_bytes], "\r\n\r\n") != null) {
+                if (mem.indexOf(u8, buf[0..], "\r\n\r\n") != null) {
                     break;
                 }
 
@@ -162,21 +180,3 @@ pub const Server = struct {
         }
     }
 };
-
-pub fn run(notifier: *const pike.Notifier, signal: *pike.Signal, event: *pike.Event, stopped: *bool) !void {
-    defer {
-        stopped.* = true;
-        event.post() catch {};
-    }
-
-    // Setup TCP server.
-
-    var server = try Server.init();
-    defer server.deinit();
-
-    // Start the server, and await for an interrupt signal to gracefully shutdown
-    // the server.
-
-    try server.start(notifier, try net.Address.parseIp("0.0.0.0", 9000));
-    try signal.wait();
-}
